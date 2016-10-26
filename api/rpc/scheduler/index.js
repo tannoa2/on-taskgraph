@@ -25,7 +25,7 @@ function schedulerServerFactory(
         this.options = options || {
             hostname: '0.0.0.0'
         };
-        this.options.protoFile = this.options.protoFile || __dirname + '/../../scheduler.proto';
+        this.options.protoFile = this.options.protoFile || __dirname + '/../../../scheduler.proto';
 
         assert.string(this.options.hostname);
         assert.string(this.options.protoFile);

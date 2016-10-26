@@ -5,6 +5,8 @@
 describe("Task Runner", function() {
     var di = require('di');
     var core = require('on-core')(di, __dirname);
+    var runnerServer;
+    var grpc;
 
     var runner,
     Task = {
@@ -55,19 +57,43 @@ describe("Task Runner", function() {
         };
     };
 
+    function mockConsul() {
+        return {
+            agent: {
+                service: {
+                    list: sinon.stub().resolves({}),
+                    register: sinon.stub().resolves({}),
+                    deregister: sinon.stub().resolves({})
+                }
+            }
+        }
+    }
+
+    function mockGrpc() {
+        return {
+            start: sinon.stub().resolves({}),
+            stop: sinon.stub().resolves({})
+        }
+    }
+
     before(function() {
         helper.setupInjector([
             core.workflowInjectables,
             require('../../lib/task-runner.js'),
             helper.di.simpleWrapper(taskMessenger, 'Task.Messengers.AMQP'),
             helper.di.simpleWrapper(Task, 'Task.Task'),
-            helper.di.simpleWrapper(store, 'TaskGraph.Store')
+            helper.di.simpleWrapper(store, 'TaskGraph.Store'),
+            require('../../api/rpc/runner/index.js'),
+            helper.di.simpleWrapper(mockConsul, 'consul'),
+            helper.di.simpleWrapper(mockGrpc, 'grpc')
         ]);
         Rx = helper.injector.get('Rx');
         Promise = helper.injector.get('Promise');
         Constants = helper.injector.get('Constants');
         assert = helper.injector.get('Assert');
         TaskRunner = helper.injector.get('TaskGraph.TaskRunner');
+        runnerServer = helper.injector.get('TaskGraph.TaskRunner.Server');
+        grpc = helper.injector.get('grpc')();
         this.sandbox = sinon.sandbox.create();
     });
 
@@ -87,6 +113,7 @@ describe("Task Runner", function() {
             this.sandbox.stub(runner, 'subscribeRunTask').resolves();
             this.sandbox.stub(runner, 'initializePipeline');
             runner.running = false;
+            this.sandbox.stub(runnerServer.prototype, 'start').resolves({});
         });
 
         afterEach(function() {
@@ -108,10 +135,10 @@ describe("Task Runner", function() {
             }));
         });
 
-        it('should subscribe to a task messenger', function(done) {
+        it('should start a new runner', function(done) {
             return runner.start()
             .then(asyncAssertWrapper(done, function() {
-                expect(runner.subscribeRunTask).to.have.been.calledOnce;
+                expect(runner.gRPC.start).to.have.been.calledOnce;
             }));
         });
     });
@@ -332,10 +359,10 @@ describe("Task Runner", function() {
     });
 
     describe('stop', function() {
-
         beforeEach(function() {
             this.sandbox.restore();
             runner = TaskRunner.create();
+            runner.gRPC = grpc;
         });
 
         it('should mark itself not running', function() {
@@ -350,7 +377,6 @@ describe("Task Runner", function() {
             var sub1 = { dispose: sinon.stub() };
             var sub2 = { dispose: sinon.stub() };
             runner.subscriptions = [sub1, sub2];
-
             return runner.stop()
             .then(function() {
                 expect(runner.subscriptions.length).to.equal(0);

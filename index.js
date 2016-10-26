@@ -21,7 +21,9 @@ var di = require('di'),
             require('./lib/rx-mixins.js'),
             helper.requireGlob(__dirname + '/lib/services/**/*.js'),
             helper.requireGlob(__dirname + '/api/rest/view/**/*.js'),
-            require('./api/rpc/index.js')
+            require('./api/rpc/scheduler/index.js'),
+            require('./api/rpc/runner/index.js'),
+            helper.requireWrapper('consul', 'consul')
         ])
     ),
     taskGraphRunner = injector.get('TaskGraph.Runner'),
@@ -33,6 +35,7 @@ var options = {
     runner: true,
     scheduler: true
 };
+var server;
 if (_.contains(process.argv, '-s') || _.contains(process.argv, '--scheduler')) {
     options.runner = false;
 } else if (_.contains(process.argv, '-r') || _.contains(process.argv, '--runner')) {
@@ -86,7 +89,8 @@ taskGraphRunner.start(options)
                  hostname: '0.0.0.0',
                  httpPort: 9005
              }
-             http.createServer(app).listen(config.httpPort, config.hostname, function () {
+             server = http.createServer(app)
+             server.listen(config.httpPort, config.hostname, function () {
                  console.log('Your server is listening on port %d ', config.httpPort);
                  console.log('Swagger-ui is available on http://%s:%d/docs', config.hostname, config.httpPort);
              });
@@ -111,6 +115,7 @@ process.on('SIGINT', function () {
             logger.critical('Task Graph Runner Shutdown Error.', { error: error });
         })
         .finally(function () {
+            server.close();
             process.nextTick(function () {
                 process.exit(1);
             });
@@ -118,5 +123,6 @@ process.on('SIGINT', function () {
 });
 
 module.exports = {
-    injector: injector
+    injector: injector,
+    taskGraphRunner: taskGraphRunner
 };

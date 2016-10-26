@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package runner;
+
+service Runner {
+  rpc runTask (task) returns (Reply) {}
+  rpc cancelTask (task) returns (Reply) {}
+}
+
+
+message task {
+  string taskId = 1;
+  string graphId = 2;
+}
+
+message Reply {
+  string response = 1;
+}
