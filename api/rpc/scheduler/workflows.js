@@ -2,7 +2,7 @@
 
 'use strict';
 
-var injector = require('../../index.js').injector;
+var injector = require('../../../index.js').injector;
 var workflowApiService = injector.get('Http.Services.Api.Workflows');
 var Errors = injector.get('Errors');
 var Constants = injector.get('Constants');

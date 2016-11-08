@@ -2,7 +2,7 @@
 
 'use strict';
 
-var injector = require('../../index.js').injector;
+var injector = require('../../../index.js').injector;
 var tasksApiService = injector.get('Http.Services.Api.Tasks');
 var _ = injector.get('_'); // jshint ignore:line
 var Errors = injector.get('Errors');
