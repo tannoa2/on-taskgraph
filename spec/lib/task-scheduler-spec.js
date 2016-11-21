@@ -188,7 +188,6 @@ describe('Task Scheduler', function() {
 
         it('start', function() {
             var stub = sinon.stub();
-            this.sandbox.stub(taskScheduler, 'subscribeRunTaskGraph').resolves(stub);
             this.sandbox.stub(taskScheduler, 'subscribeTaskFinished').resolves(stub);
             this.sandbox.stub(taskScheduler, 'subscribeCancelGraph').resolves(stub);
 
@@ -197,18 +196,14 @@ describe('Task Scheduler', function() {
                 expect(taskScheduler.running).to.equal(true);
                 expect(LeaseExpirationPoller.create).to.have.been.calledOnce;
                 expect(taskScheduler.leasePoller.start).to.have.been.calledOnce;
-                expect(taskScheduler.subscriptions).to.deep.equal([stub, stub, stub]);
+                expect(taskScheduler.subscriptions).to.deep.equal([stub, stub]);
             });
         });
 
 
         it('stop', function() {
-            var runTaskGraphDisposeStub = sinon.stub().resolves();
             var taskFinishedDisposeStub = sinon.stub().resolves();
             var cancelGraphDisposeStub = sinon.stub().resolves();
-            this.sandbox.stub(taskScheduler, 'subscribeRunTaskGraph').resolves({
-                dispose: runTaskGraphDisposeStub
-            });
             this.sandbox.stub(taskScheduler, 'subscribeTaskFinished').resolves({
                 dispose: taskFinishedDisposeStub
             });
@@ -223,7 +218,6 @@ describe('Task Scheduler', function() {
                 expect(taskScheduler.running).to.equal(false);
                 expect(taskScheduler.leasePoller.stop).to.have.been.calledOnce;
                 expect(taskScheduler.subscriptions.length).to.equal(0);
-                expect(runTaskGraphDisposeStub).to.have.been.calledOnce;
                 expect(taskFinishedDisposeStub).to.have.been.calledOnce;
             });
         });
@@ -299,22 +293,6 @@ describe('Task Scheduler', function() {
                 expect(runnerClient.client.runTask).to.have.been.calledOnce;
                 expect(runnerClient.client.runTask)
                     .to.have.been.calledWith(data);
-            });
-        });
-
-        it('subscribeRunTaskGraph should emit to evaluateGraphStream', function() {
-            var uuid = helper.injector.get('uuid');
-            var data = { graphId: uuid.v4() };
-            this.sandbox.spy(taskScheduler.evaluateGraphStream, 'onNext');
-            return taskScheduler.subscribeRunTaskGraph()
-            .then(function() {
-                expect(taskMessenger.subscribeRunTaskGraph).to.have.been.calledOnce;
-                expect(taskMessenger.subscribeRunTaskGraph)
-                    .to.have.been.calledWith(taskScheduler.domain);
-                var cb = taskMessenger.subscribeRunTaskGraph.firstCall.args[1];
-                cb(data);
-                expect(taskScheduler.evaluateGraphStream.onNext).to.have.been.calledOnce;
-                expect(taskScheduler.evaluateGraphStream.onNext).to.have.been.calledWith(data);
             });
         });
 
