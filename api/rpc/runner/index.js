@@ -48,6 +48,7 @@ function runnerServerFactory(
             self.options.port = self.gRPC.bind(
                 self.options.hostname + (self.options.port ? ':' + self.options.port : ''),
                 grpc.ServerCredentials.createInsecure());
+            console.log('*************************************');
             self.gRPC.start();
             console.log('gRPC is available on grpc://' + self.options.hostname + ':' + self.options.port);
         });
