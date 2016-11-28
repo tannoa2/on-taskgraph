@@ -116,7 +116,7 @@ process.on('SIGINT', function () {
             logger.critical('Task Graph Runner Shutdown Error.', { error: error });
         })
         .finally(function () {
-            server.close();
+            if (server) server.close();
             process.nextTick(function () {
                 process.exit(1);
             });
