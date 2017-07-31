@@ -16,11 +16,11 @@ var getBootstrap = controller( function (req, res) {
 
 var getTasksById = controller( function (req){
     return Promise.try(function() {
-        return tasksApiService.getTasks(req.swagger.params.identifier.value);
-    })
-    .catch(function () {
-        throw new Errors.NotFoundError('Not Found');
-    });
+            return tasksApiService.getTasksById(req.swagger.params.identifier.value);
+        })
+        .catch(function () {
+            throw new Errors.NotFoundError('Not Found');
+        });
 });
 
 var postTaskById = controller( {success: 201}, function (req){

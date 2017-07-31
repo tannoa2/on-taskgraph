@@ -85,7 +85,7 @@ describe('Http.Api.Workflows.2.0', function () {
             var workflowApiService = helper.injector.get('Http.Services.Api.Workflows');
             workflowApiService.createAndRunGraph.resolves('a posted workflows');
             return workflowsApi.workflowsPost({ swagger: { params:
-                { identifier: { value: '123' } } }, body: { foo: 'bar' } })
+                { identifier: { value: '123' } }, query: {options:{defaults:{graphOptions:{target:"123"}}}} }, body: { foo: 'bar' }})
                 .should.eventually.equal('a posted workflows');
         });
 
@@ -93,7 +93,7 @@ describe('Http.Api.Workflows.2.0', function () {
             var workflowApiService = helper.injector.get('Http.Services.Api.Workflows');
             workflowApiService.createAndRunGraph.rejects('post error');
             return workflowsApi.workflowsPost({ swagger: { params:
-                { identifier: { value: '123' } } }, body: { foo: 'bar' } })
+                { identifier: { value: '123' } },query: {options:{defaults:{graphOptions:{target:"123"}}}} }, body: { foo: 'bar' } })
                 .should.be.rejectedWith('post error');
         });
     });
